@@ -1348,7 +1348,11 @@ const S = [
 const esc = s => String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const src = f => 'data:image/jpeg;base64,' + IMGS[f];
 const catName = id => (CATS.find(c=>c.id===id)||{}).name||'';
-const lineUrl = text => 'https://line.me/R/oaMessage/' + encodeURIComponent(LINE_ID) + '/?' + encodeURIComponent(text);
+const lineUrl = () => 'https://line.me/ti/p/~' + LINE_ID;
+const copyThenNote = async (text) => {
+  try { await navigator.clipboard.writeText(text); swToast('已複製詢價內容，開啟 LINE 後請直接貼上傳送'); }
+  catch(e) { swToast('請手動複製內容後在 LINE 傳送'); }
+};
 
 let cur = null;
 let picks = [];
@@ -1366,7 +1370,8 @@ function renderTray(){
   $('tray').hidden = !picks.length;
   $('trayCount').textContent = `詢價清單 ${picks.length} 款`;
   $('trayCodes').textContent = picks.join('、');
-  $('lineAll').href = lineUrl(inquiryText());
+  $('lineAll').href = lineUrl();
+  $('lineAll').onclick = () => { copyThenNote(inquiryText()); };
 }
 const inquiryText = () => '您好，我想詢問以下特殊材質：\n' + picks.map(c=>{const s=S.find(x=>x.code===c);return `${c} ${s?s.name:''}`;}).join('\n');
 
@@ -1388,7 +1393,8 @@ function openSwatch(code){
   const first = v.length ? v[v.length===3?1:0] : {f:cur.img||cur.code,l:'正面'};
   setView(first.f, first.l);
   updAdd();
-  $('lineOne').href = lineUrl(`您好，我想詢問 ${cur.code} ${cur.name}`);
+  $('lineOne').href = lineUrl();
+  $('lineOne').onclick = () => { copyThenNote(`您好，我想詢問 ${cur.code} ${cur.name}`); };
   $('dlg').showModal();
 }
 const updAdd = () => { $('addBtn').textContent = picks.includes(cur.code) ? '已加入詢價清單（點一下移除）' : '加入詢價清單'; };
